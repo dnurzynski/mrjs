@@ -4,7 +4,8 @@ module Mrjs
       attr_accessor :page, :js_adapter
 
       def initialize(file, err, out)
-        @page = Page.new(File.read(file))
+        @path = File.expand_path(file).gsub(/^\//, '')
+        @page = Page.fetch("file:///#{@path}")
         @js_adapter = Adapters.adapters.find {|adapter| page.x(adapter.used?) }
 
         @page.x(js_setup)
