@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require '/Users/damian/projects/mrjs/lib/mrjs.rb'
+Mrjs::Runner.new
