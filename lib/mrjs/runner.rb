@@ -11,6 +11,8 @@ module Mrjs
     def run(args, err, out)
       @results, @stats = Config.driver.new(args.first, err, out).run
       out << Config.formatter.new(@results, @stats).summary
+
+      @stats.failed == 0
     end
 
   end
