@@ -30,9 +30,24 @@ module Mrjs
 
   end
 
+  class GroupResult
+    attr_accessor :name, :results
+
+    def initialize(group)
+      @name, @results = group.name, group.specs.map{|s| Result.new(s)}
+    end
+  end
+
+  class Result
+    def initialize(spec)
+    end
+  end
+
   class Driver
     def js_setup
-      "$specs = {}"
+      <<JS
+JS
+
     end
 
     class Harmony < Driver
@@ -46,7 +61,7 @@ module Mrjs
 
         @page.wait
 
-        puts @page.x('$specs')
+        puts @page.x('$mrjs').groups.first
 
       end
 
@@ -72,8 +87,6 @@ module Mrjs
 
       def self.setup
         <<JS
-
-          QUnit.done = function(stats) { $specs['stats'] = stats }
 JS
       end
     end
