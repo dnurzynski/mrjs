@@ -5,7 +5,7 @@ module Mrjs
 
   class Runner
     def initialize
-      Config.driver = Driver::Harmony
+      Config.driver = Drivers::Harmony
       Config.formatter = Formatters::BaseFormatter
 
       at_exit { run(ARGV, $stderr, $stdout) ? exit(0) : exit(1) }
@@ -101,54 +101,56 @@ module Mrjs
     end
   end
 
-  class Driver
-    def js_setup
-      <<JS
-        $mrjs = {
-          stats: {},
-          groups: [],
+  module Drivers
+    class Base
+      def js_setup
+        <<JS
+          $mrjs = {
+            stats: {},
+            groups: [],
 
-          addGroup: function(groupName)
-          {
-            $mrjs.groups.push(
+            addGroup: function(groupName)
             {
-              name: groupName.name,
-              specs: []
-            })
+              $mrjs.groups.push(
+              {
+                name: groupName.name,
+                specs: []
+              })
 
-          },
-          currentGroup: function()
-          {
-            return $mrjs.groups[$mrjs.groups.length - 1]
-          },
-          currentSpec: function()
-          {
-            return $mrjs.currentGroup().specs[$mrjs.currentGroup().specs.length - 1]
-          },
+            },
+            currentGroup: function()
+            {
+              return $mrjs.groups[$mrjs.groups.length - 1]
+            },
+            currentSpec: function()
+            {
+              return $mrjs.currentGroup().specs[$mrjs.currentGroup().specs.length - 1]
+            },
 
-          addSpec: function(spec)
-          {
-            $mrjs.currentGroup().specs.push(spec)
-            $mrjs.currentSpec()['tests'] = []
-          },
-          addLog: function(log)
-          {
-            $mrjs.currentSpec().tests.push(log)
+            addSpec: function(spec)
+            {
+              $mrjs.currentGroup().specs.push(spec)
+              $mrjs.currentSpec()['tests'] = []
+            },
+            addLog: function(log)
+            {
+              $mrjs.currentSpec().tests.push(log)
+            }
           }
-        }
-        $mrjs.addGroup({ name: 'Global' })
+          $mrjs.addGroup({ name: 'Global' })
 JS
+      end
+
+      def run
+        @results
+      end
     end
 
-    def run
-      @results
-    end
-
-    class Harmony < Driver
+    class Harmony < Drivers::Base
       attr_accessor :page, :js_adapter
       def initialize(file, err, out)
         @page = Page.new(File.read(file))
-        @js_adapter = JsAdapter.adapters.find {|adapter| page.x(adapter.used?) }
+        @js_adapter = Adapters.adapters.find {|adapter| page.x(adapter.used?) }
 
         @page.x(js_setup)
         @page.x(js_adapter.setup)
@@ -164,12 +166,13 @@ JS
         end
       end
     end
+
   end
 
-  class JsAdapter
+  module Adapters
 
     def self.adapters
-      @@adapters = [JsAdapter::QUnit]
+      @@adapters = [ QUnit ]
     end
 
     class QUnit
