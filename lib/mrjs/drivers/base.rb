@@ -40,7 +40,7 @@ JS
       end
 
       def run
-        @results
+        [@results, @stats]
       end
 
     end

@@ -2,9 +2,11 @@ class Formatters
   class BaseFormatter
     attr_accessor :group_results, :level, :out
 
-    def initialize(group_results)
+    def initialize(group_results, stats)
       @out = ""
-      @group_results, @level = group_results, 0
+      @level = 0
+      @group_results = group_results
+      @stats = stats
     end
 
     def group_result(group)
@@ -24,8 +26,16 @@ class Formatters
       assertion.success ? green(assertion.message) : red(assertion.message)
     end
 
+    def stats
+      white "\nStats:"
+      send (@stats.failed > 0 ? :red : :green),  "Total:   #{@stats.total}"
+      green "Passed:  #{@stats.passed}"
+      send (@stats.failed > 0 ? :red : :green),  "Failed:  #{@stats.failed}"
+    end
+
     def summary
       @group_results.each{|group| group_result(group)}
+      stats
       @out
     end
 

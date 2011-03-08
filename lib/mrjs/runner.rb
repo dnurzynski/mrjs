@@ -9,8 +9,8 @@ module Mrjs
     end
 
     def run(args, err, out)
-      @results = Config.driver.new(args.first, err, out).run
-      out << Config.formatter.new(@results).summary
+      @results, @stats = Config.driver.new(args.first, err, out).run
+      out << Config.formatter.new(@results, @stats).summary
     end
 
   end

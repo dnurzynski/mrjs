@@ -13,6 +13,7 @@ module Mrjs
         @page.wait
 
         @results = @page.x('$mrjs').groups.map{|group| GroupResult.new(group) }
+        @stats = @page.x('$mrjs').stats
       end
 
       class Page < ::Harmony::Page
