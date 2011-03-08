@@ -12,7 +12,8 @@ module Mrjs
     end
 
     def run(args, err, out)
-      ExampleGroup.new(args.first, err, out)
+      @results = Config.driver.new(args.first, err, out).run
+      puts @results
     end
   end
 
@@ -22,24 +23,27 @@ module Mrjs
     end
   end
 
-  class ExampleGroup
-
-    def initialize(file, err, out)
-      Config.driver.new(file, err, out)
-    end
-
-  end
-
   class GroupResult
     attr_accessor :name, :results
 
     def initialize(group)
-      @name, @results = group.name, group.specs.map{|s| Result.new(s)}
+      @name, @results = group.name, group.specs.map{|s| ExampleResult.new(s)}
     end
   end
 
-  class Result
+  class ExampleResult
+    attr_accessor :name, :assertion_results
+
     def initialize(spec)
+      @name, @assertion_results = spec.name, spec.tests.map{|test| AssertionResult.new(test) }
+    end
+  end
+
+  class AssertionResult
+    attr_accessor :message, :success
+
+    def initialize(assertion)
+      @message, @success = assertion.message, assertion.result
     end
   end
 
@@ -47,7 +51,10 @@ module Mrjs
     def js_setup
       <<JS
 JS
+    end
 
+    def run
+      @results
     end
 
     class Harmony < Driver
@@ -61,8 +68,7 @@ JS
 
         @page.wait
 
-        puts @page.x('$mrjs').groups.first
-
+        @results = @page.x('$mrjs').groups.map{|group| GroupResult.new(group) }.inspect
       end
 
       class Page < ::Harmony::Page
